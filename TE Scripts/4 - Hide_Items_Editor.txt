@@ -1,0 +1,54 @@
+
+//Name:         4 - Hide_Items_Editor
+//Purpose:      Hides any columns or fields no needed in the model
+//Reason:       Mini models derived from a Master model must not show more than anticpated
+
+
+// FIRST YOU MUST SELECT A PERSPECTIVE <<<<<<<<<<<==============
+// FIRST YOU MUST SELECT A PERSPECTIVE <<<<<<<<<<<==============
+// FIRST YOU MUST SELECT A PERSPECTIVE <<<<<<<<<<<==============
+
+
+
+// Loop through all columns of the current perspective:
+foreach(var c in Model.AllColumns.Where(c => c.InPerspective[Selected.Perspective])) {
+    if(
+        // If the column is hidden (or the parent table is hidden):
+        (c.IsHidden || c.Table.IsHidden) 
+
+        // And not used in any relationships:
+        && !c.UsedInRelationships.Any()
+        
+        // And not used as the SortByColumn for any other columns in the perspective:
+        && !c.UsedInSortBy.Any(sb => !sb.IsHidden && sb.InPerspective[Selected.Perspective])
+        
+        // And not used in any hierarchies in the perspective:
+        && !c.UsedInHierarchies.Any(h => h.InPerspective[Selected.Perspective])
+        
+        // And not referenced in any DAX expression for other visible objects in the perspective:
+        && !c.ReferencedBy.Deep().OfType<ITabularPerspectiveObject>()
+            .Any(obj => obj.InPerspective[Selected.Perspective] && !(obj as IHideableObject).IsHidden)
+            
+        // And not referenced by any roles:
+        && !c.ReferencedBy.Roles.Any()    )
+    {
+        // If all of the above, then the column can be removed from the current perspective:
+        c.InPerspective[Selected.Perspective] = false; 
+    }
+}
+
+// Loop through all measures of the current perspective:
+foreach(var m in Model.AllMeasures.Where(m => m.InPerspective[Selected.Perspective])) {
+    if(
+        // If the measure is hidden (or the parent table is hidden):
+        (m.IsHidden || m.Table.IsHidden) 
+
+        // And not referenced in any DAX expression for other visible objects in the perspective:
+        && !m.ReferencedBy.Deep().OfType<ITabularPerspectiveObject>()
+            .Any(obj => obj.InPerspective[Selected.Perspective] && !(obj as IHideableObject).IsHidden)
+    )
+    {
+        // If all of the above, then the column can be removed from the current perspective:
+        m.InPerspective[Selected.Perspective] = false; 
+    }
+}

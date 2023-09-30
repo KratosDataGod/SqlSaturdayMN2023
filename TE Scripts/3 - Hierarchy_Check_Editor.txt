@@ -1,0 +1,40 @@
+
+//Name:         3 - Hierarchy_Check_Editor
+//Purpose:      Ensure all necessary fields for a hierachy are in the perspective
+//Reason:       Mini models derived from a Master model must include all of the necessary tables/fields/measures to opperate. This ensures hierarchise are maintained
+
+
+// FIRST YOU MUST SELECT A PERSPECTIVE <<<<<<<<<<<==============
+// FIRST YOU MUST SELECT A PERSPECTIVE <<<<<<<<<<<==============
+// FIRST YOU MUST SELECT A PERSPECTIVE <<<<<<<<<<<==============
+
+
+// Look through all hierarchies in the current perspective:
+foreach(var h in Model.AllHierarchies.Where(h => h.InPerspective[Selected.Perspective]))
+{
+    // Make sure columns used in hierarchy levels are included in the perspective:
+    foreach(var level in h.Levels) {
+        level.Column.InPerspective[Selected.Perspective] = true;
+    }
+}
+
+// Loop through all measures and columns in the current perspective:
+foreach(var obj in Model.AllMeasures.Cast<ITabularPerspectiveObject>()
+    .Concat(Model.AllColumns).Where(m => m.InPerspective[Selected.Perspective])
+    .OfType<IDaxDependantObject>().ToList())
+{
+    // Loop through all objects that the current object depends on:
+    foreach(var dep in obj.DependsOn.Deep())
+    {
+        // Include columns, measure and table dependencies:
+        var columnDep = dep as Column; if(columnDep != null) columnDep.InPerspective[Selected.Perspective] = true;
+        var measureDep = dep as Measure; if(measureDep != null) measureDep.InPerspective[Selected.Perspective] = true;
+        var tableDep = dep as Table; if(tableDep != null) tableDep.InPerspective[Selected.Perspective] = true;
+    }    
+}
+
+// Look through all columns that have a SortByColumn in the current perspective:
+foreach(var c in Model.AllColumns.Where(c => c.InPerspective[Selected.Perspective] && c.SortByColumn != null))
+{
+    c.SortByColumn.InPerspective[Selected.Perspective] = true;   
+}

@@ -1,0 +1,19 @@
+
+//Name:         Update BPA Rules
+//Purpose:      Update to the latest BPA Rules
+//Reason:       Use this to update from GIT the best practice rules from Microsoft BI team 
+
+
+System.Net.WebClient w = new System.Net.WebClient(); 
+
+string path = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData);
+string url = "https://raw.githubusercontent.com/microsoft/Analysis-Services/master/BestPracticeRules/BPARules.json";
+string version = System.Windows.Forms.Application.ProductVersion.Substring(0,1);
+string downloadLoc = path+@"\TabularEditor\BPARules.json";
+
+if (version == "3")
+{
+    downloadLoc = path+@"\TabularEditor3\BPARules.json";
+}
+
+w.DownloadFile(url, downloadLoc);
